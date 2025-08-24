@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini E-Commerce</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+    header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+    .container { display: flex; padding: 20px; }
+    .products { flex: 3; }
+    .category { margin-bottom: 40px; }
+    .category h2 { margin-bottom: 15px; color: #2c3e50; border-left: 5px solid #27ae60; padding-left: 10px; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .product { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); text-align: center; }
+    .product img { width: 100%; max-height: 150px; object-fit: contain; border-radius: 5px; }
+    .product h3 { margin: 10px 0; }
+    .product button { background: #27ae60; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; }
+    .product button:hover { background: #219150; }
+    .cart { flex: 1; background: #fff; padding: 15px; margin-left: 20px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    .cart h2 { margin-top: 0; }
+    .cart-item { display: flex; justify-content: space-between; margin: 5px 0; }
+    .cart-item button { background: red; color: white; border: none; padding: 3px 6px; cursor: pointer; border-radius: 3px; }
+    .checkout { background: #3498db; color: white; padding: 10px; text-align: center; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    .checkout:hover { background: #2980b9; }
+  </style>
+</head>
+<body>
+  <header><h1>🛍 Mini E-Commerce Store</h1></header>
+  <div class="container">
+    <div class="products" id="product-sections"></div>
+    <div class="cart">
+      <h2>Your Cart</h2>
+      <div id="cart-items"></div>
+      <h3>Total: $<span id="cart-total">0</span></h3>
+      <div class="checkout" onclick="checkout()">Checkout</div>
+    </div>
+  </div>
+
+  <script>
+    // Fake "backend database"
+    const fakeDatabase = {
+      "Electronics": [
+        { id: 1, name: "Laptop", price: 800, img: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80" },
+        { id: 2, name: "Headphones", price: 50, img: "https://m.media-amazon.com/images/I/71MYal3qCOL._AC_SR146,118_CB1169409_QL70_.jpg" },
+        { id: 3, name: "Smartphone", price: 500, img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80" }
+      ],
+      "Fashion": [
+        { id: 4, name: "Shoes", price: 70, img: "https://m.media-amazon.com/images/I/61sy8OCYrOL._AC_SR146,118_CB1169409_QL70_.jpg" },
+        { id: 5, name: "Watch", price: 120, img: "https://m.media-amazon.com/images/I/61y2VVWcGBL._AC_UL320_.jpg" }
+      ],
+      "Accessories": [
+        { id: 6, name: "Backpack", price: 40, img: "https://m.media-amazon.com/images/I/41VK3UJVNPL._AC_SR250,250_QL65_.jpg" },
+        { id: 7, name: "Sunglasses", price: 30, img: "https://m.media-amazon.com/images/I/41yqM8NP0qL._AC_SR146,118_CB1169409_QL70_.jpg" }
+      ]
+    };
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Render all categories and products
+    function renderProducts() {
+      const sectionContainer = document.getElementById("product-sections");
+      sectionContainer.innerHTML = "";
+      Object.keys(fakeDatabase).forEach(category => {
+        let productsHTML = "";
+        fakeDatabase[category].forEach(p => {
+          productsHTML += `
+            <div class="product">
+              <img src="${p.img}" alt="${p.name}">
+              <h3>${p.name}</h3>
+              <p>$${p.price}</p>
+              <button onclick="addToCart(${p.id}, '${category}')">Add to Cart</button>
+            </div>
+          `;
+        });
+        sectionContainer.innerHTML += `
+          <div class="category">
+            <h2>${category}</h2>
+            <div class="product-grid">${productsHTML}</div>
+          </div>
+        `;
+      });
+    }
+
+    // Add to cart
+    function addToCart(id, category) {
+      const product = fakeDatabase[category].find(p => p.id === id);
+      cart.push(product);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Render cart
+    function renderCart() {
+      const cartItems = document.getElementById("cart-items");
+      const cartTotal = document.getElementById("cart-total");
+      cartItems.innerHTML = "";
+      let total = 0;
+      cart.forEach((item, i) => {
+        total += item.price;
+        cartItems.innerHTML += `
+          <div class="cart-item">
+            <span>${item.name} - $${item.price}</span>
+            <button onclick="removeFromCart(${i})">X</button>
+          </div>
+        `;
+      });
+      cartTotal.textContent = total;
+    }
+
+    // Remove from cart
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Checkout
+    function checkout() {
+      if (cart.length === 0) return alert("Your cart is empty!");
+      const total = cart.reduce((s, i) => s + i.price, 0);
+      alert(`✅ Order placed successfully! Total: $${total}`);
+      cart = [];
+      localStorage.removeItem("cart");
+      renderCart();
+    }
+
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>
